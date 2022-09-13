@@ -11,12 +11,14 @@ function reactive<T extends object>(value: T): T {
             return isObject(value) ? reactive(value) : value
         },
         set(target, key, value, ...args) {
-            // const oldValue = Reflect.get(target, key, ...args)
-            // const isValueChange = oldValue !== value
+            const oldValue = Reflect.get(target, key, ...args)
+            const isValueChange = oldValue !== value
             // const isNewAttr = !Object.prototype.hasOwnProperty.call(target, key)
-            Reflect.set(target, key, value, ...args)
-            Effect.trigger(target, key)
-            return true
+            if (isValueChange) {
+                Reflect.set(target, key, value, ...args)
+                Effect.trigger(target, key)
+            }
+            return isValueChange
         }
     })
 }

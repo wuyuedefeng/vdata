@@ -2,7 +2,7 @@ const bucket = new WeakMap()
 let activeEffect: null | Effect = null
 // const isObject = (value: any) => typeof value === 'object'
 class Effect {
-    private readonly fn: () => void;
+    private readonly fn: () => any;
     static get bucket(): WeakMap<Object, any> {
         return bucket
     }
@@ -36,7 +36,7 @@ class Effect {
         const effects: Effect[] = depsMap.get(key)
         effects && effects.forEach(effect => effect.call())
     }
-    constructor(fn: () => void) {
+    constructor(fn: () => any) {
         this.fn = fn
         {
             activeEffect = this
@@ -44,9 +44,9 @@ class Effect {
             activeEffect = null
         }
     }
-    call() {
+    call(): any {
         // this.fn.call(this)
-        this.fn()
+        return this.fn()
     }
 }
 
