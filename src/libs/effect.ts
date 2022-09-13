@@ -1,5 +1,6 @@
 const bucket = new WeakMap()
 let activeEffect: null | Effect = null
+// const isObject = (value: any) => typeof value === 'object'
 class Effect {
     private readonly fn: () => void;
     static get bucket(): WeakMap<Object, any> {

@@ -8,9 +8,16 @@ function ref(rawValue: any) {
         set value(nv: any) {
             rawValue = nv
             Effect.trigger(v, 'value')
+        },
+        get __v_isRef() {
+            return true
         }
     }
     return v
 }
 
-export { ref }
+function isRef(value: any): boolean {
+    return  value?.__v_isRef || false
+}
+
+export { ref, isRef }

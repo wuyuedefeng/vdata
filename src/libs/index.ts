@@ -1,9 +1,9 @@
-import { reactive } from './reactive'
+import { reactive, isReactive } from './reactive'
+import { ref, isRef } from './ref'
 import { effect } from './effect'
-import { ref } from './ref'
 
 export {
-    reactive,
+    reactive, isReactive,
+    ref, isRef,
     effect,
-    ref,
 }
