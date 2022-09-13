@@ -1,6 +1,6 @@
 import './style.css'
 import typescriptLogo from './typescript.svg'
-import { effect, reactive } from './libs'
+import { effect, reactive, ref } from './libs'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -15,7 +15,8 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       <button id="counter" type="button"></button>
     </div>
     <p class="read-the-docs">
-      Click on the Vite and TypeScript logos to learn more
+      <span id="count1"></span>
+      <span id="count2"></span>
     </p>
   </div>
 `
@@ -23,10 +24,18 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 const state: any = reactive({
     count: 1
 })
+const count2 = ref(1)
 const element: HTMLButtonElement = document.querySelector<HTMLButtonElement>('#counter')!;
 element.addEventListener('click', () => {
-    state.count += 1;
+    state.count += 1
+    count2.value += 2
 })
 effect(() => {
     element.innerHTML = `count is ${state.count}`;
+})
+effect(() => {
+    document.querySelector<HTMLButtonElement>('#count1')!.innerHTML = `count is ${state.count}`
+})
+effect(() => {
+    document.querySelector<HTMLButtonElement>('#count2')!.innerHTML = `count2 is ${count2.value}`
 })
