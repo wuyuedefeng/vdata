@@ -1,6 +1,14 @@
 import { Effect } from './effect'
 const isObject = (value: any) => typeof value === 'object'
 function reactive<T extends object>(value: T): T {
+    if (!isObject(value)) {
+        console.warn(`value cannot be made reactive: ${value})`)
+        return value
+    }
+    if (isReactive(value)) {
+        return value
+    }
+
     return new Proxy(value, {
         get(target, key, ...args) {
             if (key === '__v_isReactive') {

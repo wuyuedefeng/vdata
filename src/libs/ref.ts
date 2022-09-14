@@ -1,19 +1,25 @@
 import { Effect } from './effect'
-function ref(rawValue: any) {
-    const v = {
-        get value() {
-            Effect.track(v, 'value')
-            return rawValue
-        },
-        set value(nv: any) {
-            rawValue = nv
-            Effect.trigger(v, 'value')
-        },
-        get __v_isRef() {
-            return true
-        }
+
+class RefImpl {
+    private _value: any;
+    constructor(rawValue: any) {
+        this._value = rawValue
     }
-    return v
+    get value() {
+        Effect.track(this, 'value')
+        return this._value
+    }
+    set value(nv: any) {
+        this._value = nv
+        Effect.trigger(this, 'value')
+    }
+    get __v_isRef() {
+        return true
+    }
+}
+
+function ref(rawValue: any): RefImpl {
+    return new RefImpl(rawValue)
 }
 
 function isRef(value: any): boolean {

@@ -2,36 +2,42 @@ import {Effect, effect} from './effect'
 class ComputedRefImpl {
     // public dep: any;
     public effect: Effect;
-    private _dirty: boolean;
+    private dirty: boolean;
     private _value: any;
     constructor(public getter: () => any, public setter: ((nv: any) => void) | null) {
         this.getter = getter
         this.setter = setter
 
-        this._dirty = true
+        this.dirty = true
         this._value = undefined
         this.effect = effect(() => {
-            const value = this.getter()
-            this._dirty = false
-            this.value = value
+            this._value = this.getter()
+            Effect.trigger(this, 'value')
+        }, {
+            lazy: true,
+            scheduler: () => {
+                this.dirty = false
+            }
         })
     }
     get value(): any {
-        if (this._dirty) {
-            this.effect.call()
-            this._dirty = false
+        if (this.dirty) {
+            this.effect.runner ? this.effect.runner() : this.effect.call()
+            this.dirty = false
         }
         Effect.track(this, 'value')
         return this._value
     }
     set value(value: any) {
-        this._value = value
         if (this.setter) {
             this.setter(value)
         }
         Effect.trigger(this, 'value')
     }
     get __v_isComputed() {
+        return true
+    }
+    get __v_isRef() {
         return true
     }
 }
