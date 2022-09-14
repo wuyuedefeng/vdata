@@ -1,6 +1,6 @@
 import './style.css'
 import typescriptLogo from './typescript.svg'
-import { effect, reactive, isReactive, ref, isRef, computed, isComputed } from './libs'
+import { effect, reactive, isReactive, ref, isRef, computed, isComputed, watch } from './libs'
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <div>
@@ -46,3 +46,11 @@ effect(() => {
     document.querySelector<HTMLDivElement>('#count3')!.innerHTML = `computed double info.count: ${doubleInfoCount.value}`
     // console.log(111)
 })
+
+const stop = watch(() => state.info, (nv, ov) => {
+    console.log('watch state.info.count', nv, ov)
+    if (nv && nv.count > 30) {
+        stop()
+        console.log('stop watch');
+    }
+}, {immediate: true, deep: true})

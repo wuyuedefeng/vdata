@@ -44,6 +44,7 @@ function computed(value: any) {
         getter = (value as any)['get']
         setter = Object.prototype.hasOwnProperty.call(value, 'set') ? (value as any)['set'] : null
     }
+    console.assert(!!getter, 'Warning: computed getter is null')
     return new ComputedRefImpl(getter, setter)
 }
 
