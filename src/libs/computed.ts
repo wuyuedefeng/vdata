@@ -11,9 +11,9 @@ class ComputedRefImpl {
         this._dirty = true
         this._value = undefined
         this.effect = effect(() => {
-            this._value = this.getter()
+            const value = this.getter()
             this._dirty = false
-            Effect.trigger(this, 'value')
+            this.value = value
         })
     }
     get value(): any {
@@ -25,10 +25,11 @@ class ComputedRefImpl {
         return this._value
     }
     set value(value: any) {
+        this._value = value
         if (this.setter) {
             this.setter(value)
-            // Effect.trigger(this, 'value')
         }
+        Effect.trigger(this, 'value')
     }
     get __v_isComputed() {
         return true

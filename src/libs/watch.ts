@@ -1,4 +1,4 @@
-import {effect, Effect} from './effect'
+import {effect} from './effect'
 import { computed } from './computed'
 function watch(source: () => any, cb: (nv: any, ov: any) => void, options: any = null): () => void {
     options = {immediate: false, deep: false, ...options}
@@ -23,11 +23,17 @@ function watch(source: () => any, cb: (nv: any, ov: any) => void, options: any =
                 cb(currentValue, beforeValue)
             }
         }
+    }, {
+        // onTrack(params: any) {
+        //     console.log('onTrack', params)
+        // },
+        // onTrigger(params: any) {
+        //     console.log('onTrigger', params)
+        // }
     })
 
     const stop = () => {
-        Effect.cleanup(cValue)
-        eff.cleanup()
+        eff.stop()
     }
     return stop
 }
