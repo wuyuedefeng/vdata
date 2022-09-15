@@ -1,16 +1,17 @@
 const bucket = new WeakMap()
-let activeEffect: null | Effect = null
+const effectStack: Effect[] = []
+let activeEffect: undefined | Effect = undefined
 // const isObject = (value: any) => typeof value === 'object'
 class Effect {
-    private readonly raw: () => any;
+    private readonly fn: () => any;
     private active: boolean; // 开关
-    private deps: Set<Effect>[];
+    private deps: Set<Set<Effect>>;
     public options: any;
-    public runner: (() => void) | null;
+    public effFn: (() => void);
     static get bucket(): WeakMap<Object, any> {
         return bucket
     }
-    static get activeEffect(): null | Effect {
+    static get activeEffect(): undefined | Effect {
         return activeEffect
     }
     static track(target: Object, key: any): void {
@@ -21,19 +22,20 @@ class Effect {
         }
         let depsMap = bucket.get(target)
         if (!depsMap) {
-            depsMap = new Map()
-            bucket.set(target, depsMap)
+            bucket.set(target, (depsMap = new Map()))
         }
         let dep: Set<Effect> = depsMap.get(key)
         if (!dep) {
-            dep = new Set()
-            depsMap.set(key, dep)
+            depsMap.set(key, (dep = new Set()))
         }
-        if (typeof activeEffect.options.onTrack === 'function') {
-            activeEffect.options.onTrack({effect: activeEffect, target, key})
+        if (!dep.has(activeEffect)) {
+            dep.add(activeEffect)
+            activeEffect.deps.add(dep)
+            if (typeof activeEffect.options.onTrack === 'function') {
+                activeEffect.options.onTrack({effect: activeEffect, target, key})
+            }
         }
-        dep.add(activeEffect)
-        activeEffect.deps.push(dep)
+
     }
     static trigger(target: Object, key: any): void {
         const bucket = Effect.bucket
@@ -46,32 +48,39 @@ class Effect {
             if (typeof effect.options.onTrigger === 'function') {
                 effect.options.onTrigger({effect, target, key})
             }
-            effect.call()
+            effect.run()
         })
     }
     constructor(fn: () => any, options: any = null) {
         this.active = true
-        this.deps = []
+        this.deps = new Set()
         this.options = { lazy: false, scheduler: null, onTrack: null, onTrigger: null, onStop: null, ...options }
-        this.raw = fn
-        this.runner = () => {
-            activeEffect = this
-            this.call()
-            activeEffect = null
-            this.runner = null
+        this.fn = fn
+        this.effFn = () => {
+            this.cleanup()
+            try {
+                effectStack.push(this)
+                activeEffect = this
+                return this.fn()
+            } finally {
+                effectStack.pop()
+                activeEffect = effectStack[effectStack.length - 1]
+            }
+            // this.effFn = null
         }
         if (!this.options.lazy) {
-            this.runner()
+            this.effFn()
         }
     }
-    call(): void {
+    run(): any {
         if (!this.active) {
-            return
+            return this.options.scheduler ? undefined : this.fn()
         }
-        // this.fn.call(this)
-        this.raw()
         if (typeof this.options.scheduler === 'function') {
-            this.options.scheduler()
+            return this.options.scheduler(this)
+        } else {
+            // this.fn.call(this)
+            return this.fn()
         }
     }
     stop(): void {
@@ -84,12 +93,12 @@ class Effect {
         }
     }
     private cleanup() {
-        if (this.deps.length) {
-            for (let i = 0; i < this.deps.length; i++) {
-                this.deps[i].delete(this)
-            }
-            this.deps.length = 0
+        if (this.deps.size) {
+            this.deps.forEach(dep => {
+                dep.delete(this)
+            })
         }
+        this.deps.clear()
     }
     protected get _isEffect() {
         return true

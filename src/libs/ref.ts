@@ -2,7 +2,8 @@ import { Effect } from './effect'
 
 class RefImpl {
     private _value: any;
-    constructor(rawValue: any) {
+    // public readonly __v_isRef = true
+    constructor(rawValue: any, _shallow: boolean = false) {
         this._value = rawValue
     }
     get value() {
@@ -10,6 +11,7 @@ class RefImpl {
         return this._value
     }
     set value(nv: any) {
+        // TODO: if (!hasChanged(nv, this._value)) return;
         this._value = nv
         Effect.trigger(this, 'value')
     }
@@ -19,7 +21,7 @@ class RefImpl {
 }
 
 function ref(rawValue: any): RefImpl {
-    return new RefImpl(rawValue)
+    return isRef(rawValue) ? rawValue : new RefImpl(rawValue)
 }
 
 function isRef(value: any): boolean {
